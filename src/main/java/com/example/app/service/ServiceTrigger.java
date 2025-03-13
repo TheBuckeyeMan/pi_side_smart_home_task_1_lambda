@@ -11,22 +11,24 @@ import org.springframework.stereotype.Service;
 @Service
 public class ServiceTrigger {
     private static final Logger log = LoggerFactory.getLogger(ServiceTrigger.class);
-    
+
+    private final RegisterDevice registerDevice;
+
+    public ServiceTrigger(RegisterDevice registerDevice){
+        this.registerDevice = registerDevice;
+    }
+
 
     @Value("${spring.profiles.active}")
     private String environment;
 
-    @Value("${aws.databases.dynamodb.serialnumbers}")
-    private String serialNumberDynamoDb;
-
 
     public void TriggerService(){
         //Initialization Logs
+        log.info("Begining to kick off the task 1 lambda function...");
         log.info("The Active Environment is set to: " + environment);
-        log.info("Begining to Collect Contents of Fun Fact form S3 Bucket");
-        log.info("The DYnamo DB Instance name is: " + serialNumberDynamoDb);
-
-
+        registerDevice.registerDevice(environment);
+        
 
     }
 }
