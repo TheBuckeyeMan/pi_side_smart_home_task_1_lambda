@@ -17,30 +17,27 @@ public class GetSerialNumber {
 
     public String getSerialNumber(Map<String, Object> apiGatewayEvent) throws Exception {
         log.info("Attempting to get the Serial Number form API Gateway...");
-        try{
-            //Get body from api gateway message
-            String body = getBody(apiGatewayEvent);
 
-            //Check if body is valid
-            isBodyValid(body);
 
-            //Verify the body includes the Serial Number
-            JsonNode serialNumberJsonNode = hasSerialNumber(body);
+        //Get body from api gateway message
+        String body = getBody(apiGatewayEvent);
 
-            //Get the String to Return
-            String serialNumber = getSerialNumber(serialNumberJsonNode);
-            return serialNumber;
+        //Check if body is valid
+        isBodyValid(body);
 
-        } catch (Exception e){
-            log.error("Error occured while attempting to get the Serial Number from the api gateway request", e.getMessage(), e);
-            throw new RuntimeException("Error occured while attempting to get the Serial Number from the api gateway request");
-        }
+        //Verify the body includes the Serial Number
+        JsonNode serialNumberJsonNode = hasSerialNumber(body);
+
+        //Get the String to Return
+        String serialNumber = getSerialNumberAsText(serialNumberJsonNode);
+        return serialNumber;
     }
 
     private String getBody(Map<String, Object> apiGatewayEvent){
         log.info("Attempting to extract the body from the api gateway request...");
         try{
             String body = (String) apiGatewayEvent.get("body");
+            log.info("The body of the api request recieved successfully! The body is: " + body);
             return body;
         } catch (RuntimeException e){
             log.error("Error occured while extracting the body message from api gateway", e.getMessage(), e);
@@ -69,6 +66,7 @@ public class GetSerialNumber {
             if (!jsonNode.has("serial_number")){
                 throw new RuntimeException("Serial Number not included in the body request from api gateway as serial_number");
             } else {
+                log.info("The body has serial_number included in the body of the request.");
                 return jsonNode;
             }
         } catch (RuntimeException e){
@@ -80,7 +78,9 @@ public class GetSerialNumber {
     private String getSerialNumberAsText(JsonNode serialNumberJsonNode) {
         log.info("Attempting to convert the JsonNodeSerialNumber to String...");
         try{
-            String serialNumber = serialNumberJsonNode.get("serialNumber").asText();
+            String serialNumber = serialNumberJsonNode.get("serial_number").asText();
+            log.info("The serial Number was successfully converted to a String. The serial number is: " + serialNumber);
+            log.info("The type of serialNumber is " + serialNumber.getClass().getSimpleName());
             return serialNumber;
 
         } catch (RuntimeException e){

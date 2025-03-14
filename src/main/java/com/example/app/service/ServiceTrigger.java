@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
+
 @Service
 public class ServiceTrigger {
     private static final Logger log = LoggerFactory.getLogger(ServiceTrigger.class);
@@ -18,17 +20,19 @@ public class ServiceTrigger {
         this.registerDevice = registerDevice;
     }
 
+    @Value("${aws.databases.dynamodb.serialnumbers}")
+    private String dynamoDbTableName;
 
     @Value("${spring.profiles.active}")
     private String environment;
 
 
-    public void TriggerService(){
+    public PutItemResponse TriggerService(Map<String, Object> apiGatewayEvent) throws Exception{
         //Initialization Logs
         log.info("Begining to kick off the task 1 lambda function...");
         log.info("The Active Environment is set to: " + environment);
-        registerDevice.registerDevice(environment);
+        PutItemResponse dynamoDbResponse = registerDevice.registerDevice(apiGatewayEvent, dynamoDbTableName);
         
-
+        return dynamoDbResponse;
     }
 }
