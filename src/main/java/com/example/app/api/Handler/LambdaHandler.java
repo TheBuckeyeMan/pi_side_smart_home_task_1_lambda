@@ -2,6 +2,7 @@ package com.example.app.api.Handler;
 
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.boot.WebApplicationType;
@@ -32,9 +33,26 @@ public class LambdaHandler implements RequestHandler<Map<String, Object>, Object
     @Override
     public Object handleRequest(final Map<String, Object> input, final Context context) {
         try{
-        return serviceTrigger.TriggerService(input);
+            //Get the response
+            Object serviceResponse = serviceTrigger.TriggerService(input);
+
+            //Return properly formatted for API Gateway
+            return createResponse(200, "{\"message\": \"Success from Lambda!\", \"data\": \"" + serviceResponse + "\"}");
         } catch (Exception e){
-            return "Fatal Error Occured on Entrypoint: " + e.getMessage() + e;
+            context.getLogger().log("Lambda Error: " + e.getMessage());
+            return createResponse(500, "{\"message\": \"Internal Server Error From Lambda\", \"error\": \"" + e.getMessage() + "\"}");
         }
+    }
+
+    private Map<String, Object> createResponse(int statusCode, String body) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("statusCode", statusCode);
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+        response.put("headers", headers);
+
+        response.put("body", body);
+        return response;
     }
 }
